@@ -9,37 +9,52 @@ from io import BytesIO
 import os
 
 # --- 1. 頁面配置 ---
-st.set_page_config(page_title="馬尼通訊 企劃排程系統 v13.1", page_icon="🐎", layout="wide")
+st.set_page_config(page_title="馬尼通訊 企劃排程系統 v13.2", page_icon="🐎", layout="wide")
 
+# CSS 優化：調整 Placeholder 透明度與 Selectbox 文字顏色
 st.markdown("""
     <style>
     .main { background-color: #F0F2F6; color: #1E2D4A; }
     .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 { color: #0B1C3F !important; }
+    
+    /* 讓 Placeholder 更淡一點 (透明度 0.4) */
+    ::placeholder { color: #888888 !important; opacity: 0.4 !important; }
+    textarea::placeholder { color: #888888 !important; opacity: 0.4 !important; }
+    
+    /* 修正下拉選單文字顏色與背景 */
+    div[data-baseweb="select"] > div { background-color: white !important; color: #0B1C3F !important; }
+    div[data-testid="stSelectbox"] label { color: #FFD700 !important; }
+    
     .stButton>button { background-color: #0B1C3F; color: white; border-radius: 8px; font-weight: bold; }
     .stDownloadButton>button { background-color: #27AE60; color: white; border-radius: 8px; font-weight: bold; }
+    
     section[data-testid="stSidebar"] { background-color: #0B1C3F; color: white; }
     section[data-testid="stSidebar"] .stMarkdown h2 { color: #FFD700 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 初始化範本資料 ---
+# --- 2. 初始化 Session State (解決 Key 衝突與資料持久化) ---
 if 'templates_store' not in st.session_state:
     st.session_state.templates_store = {
         "🐎 馬年慶：百倍奉還": {
             "name": "2026 馬尼通訊「馬年慶：百倍奉還」",
-            "purpose": "迎接馬年，透過 $100 低門檻吸引新舊客，增加會員與官網流量。",
-            "core": "執行單位: 全公司門市；目標銷售商品為: 100元新年禮包。",
-            "schedule": "提案期: 114/12/01-12/15\n宣傳期: 01/12-01/18\n銷售期: 01/19-02/08\n兌獎期: 02/12-02/28",
-            "prizes": "Sony PS5 | 1 名 | 吸睛大獎\n現金 $6,666 | 1 名 | 百倍奉還獎",
-            "sop": "1.確認每人限購數量。 2.主動告知抽獎序號保存。 3.引導加入官方LINE。",
-            "marketing": "FB/IG/脆倒數限動；針對弱勢分店進行區域廣告投遞。",
-            "risk": "稅務申報流程；序號防偽蓋章；滯銷禮包調度機制。",
-            "effect": "預計帶動 2,000+ 進店人次；強化品牌高性價比形象。"
+            "purpose": "迎接馬年，透過 $100 低門檻吸引新舊客，增加會員與官網流量 [cite: 4, 5]。",
+            "core": "執行單位: 全公司門市；目標銷售商品為: 100元新年禮包 [cite: 9, 10]。",
+            "schedule": "提案期: 115/01/12-01/18 [cite: 12]\n銷售期: 01/19-02/08 [cite: 12]\n開獎日: 02/11 [cite: 12]\n兌獎期: 02/12-02/28 [cite: 12]",
+            "prizes": "Sony PS5 | 1 名 | 吸睛大獎 [cite: 15]\n現金 $6,666 | 1 名 | 百倍奉還獎 [cite: 15]\n官網購物金 $1,500 | 115 名 | 關鍵轉化 [cite: 17]",
+            "sop": "1.確認每人限購3包 [cite: 19]。 2.告知序號保存 [cite: 20]。 3.引導加入LINE [cite: 22]。",
+            "marketing": "FB/IG/脆倒數限動 [cite: 25]；弱勢分店區域廣告投遞 [cite: 58]。",
+            "risk": "稅務申報流程 [cite: 28]；序號防偽蓋章 [cite: 31]；滯銷調度機制 [cite: 42]。",
+            "effect": "預計帶動 2,000+ 進店人次 [cite: 34]；強化品牌形象 [cite: 36]。"
         },
         "📱 範本：新機上市": {"name": "新品發表企劃", "purpose": "", "core": "", "schedule": "", "prizes": "", "sop": "", "marketing": "", "risk": "", "effect": ""},
         "🎁 範本：品牌週年": {"name": "十週年盛典", "purpose": "", "core": "", "schedule": "", "prizes": "", "sop": "", "marketing": "", "risk": "", "effect": ""},
         "🛍️ 範本：門市振興": {"name": "弱勢門市支援方案", "purpose": "", "core": "", "schedule": "", "prizes": "", "sop": "", "marketing": "", "risk": "", "effect": ""}
     }
+
+# 初始化預設值，解決 Session State API 衝突
+if "p_proposer" not in st.session_state:
+    st.session_state["p_proposer"] = "行銷部"
 
 # --- 3. 側邊欄：範本管理 ---
 with st.sidebar:
@@ -74,43 +89,44 @@ with st.sidebar:
         st.rerun()
 
     with st.expander("🛠️ 系統資訊", expanded=False):
-        st.caption("v13.1 | 加入欄位引導提示 (Placeholder)\n馬尼行銷規劃提案 © 2025 Money MKT")
+        st.caption("v13.2 | 視覺優化與 Bug 修復\n馬尼行銷規劃提案 © 2025 Money MKT")
 
-# --- 4. 主要編輯區 (加入提示文字) ---
+# --- 4. 主要編輯區 ---
 st.title("📱 馬尼通訊 行銷企劃提案系統")
 
 c_top1, c_top2, c_top3 = st.columns([2, 1, 1])
-with c_top1: p_name = st.text_input("一、 活動名稱", key="p_name", placeholder="例如: 2026 馬年慶：百倍奉還抽獎活動")
-with c_top2: proposer = st.text_input("提案人", key="p_proposer", value="行銷部")
+with c_top1: p_name = st.text_input("一、 活動名稱", key="p_name", placeholder="例如: 2026 馬年慶：百倍奉還抽獎活動 [cite: 7]")
+# 移除 value 參數，統一由 Session State 初始化控制
+with c_top2: proposer = st.text_input("提案人", key="p_proposer")
 with c_top3: p_date = st.date_input("提案日期", value=datetime.now(), key="p_date")
 
 st.divider()
 c1, c2 = st.columns(2)
 with c1:
     st.text_area("活動時機與目的", key="p_purpose", height=100, 
-                 placeholder="(節日活動，透過指定促銷或搭贈銷售，增加成交機率與新客。)")
+                 placeholder="(節日活動，透過指定促銷或搭贈銷售，增加成交機率與新客 [cite: 5]。)")
     
     st.text_area("二、 活動核心內容", key="p_core", height=100, 
-                 placeholder="執行單位:指定門市或全公司門市，目標銷售商品為:指定商品買一送一、活動期間XX商品8折。")
+                 placeholder="執行單位:指定門市或全公司門市，目標銷售商品為:指定商品買一送一 [cite: 9, 10]。")
     
     st.text_area("三、 活動時程安排", key="p_schedule", height=120, 
-                 placeholder="建議分為: 提案期、整備期、宣傳期、銷售期、開獎期、兌獎期。")
+                 placeholder="建議分為: 提案期、整備期、宣傳期、銷售期、開獎期、兌獎期 [cite: 12]。")
     
     st.text_area("四、 贈品結構與預算", key="p_prizes", height=120, 
-                 placeholder="搭售或搭贈、指定商品的數量或活動名稱，以及相關所需成本估算。")
+                 placeholder="搭售或搭贈、指定商品的數量或活動名稱，以及相關所需成本估算 [cite: 14, 15]。")
 
 with c2:
     st.text_area("五、 門市執行流程 (SOP)", key="p_sop", height=100, 
-                 placeholder="門市所需要執行的方式或需注意的搭銷方式。")
+                 placeholder="門市所需要執行的方式或需注意的搭銷方式 [cite: 18]。")
     
     st.text_area("六、 行銷流程與策略", key="p_marketing", height=100, 
-                 placeholder="希望曝光的管道與平台，或是支援提供。")
+                 placeholder="希望曝光的管道與平台，或是支援提供 [cite: 23]。")
     
     st.text_area("七、 風險管理與注意事項", key="p_risk", height=100, 
-                 placeholder="整個活動的風險評估與一定要注意的相關事項。")
+                 placeholder="整個活動的風險評估與一定要注意的相關事項 [cite: 27]。")
     
     st.text_area("八、 預估成效", key="p_effect", height=100, 
-                 placeholder="預計可以營造或是達成期許目的性。")
+                 placeholder="預計可以營造或是達成期許目的性 [cite: 33]。")
 
 # --- 5. Word 輸出美化 (維持 v13.0 邏輯) ---
 def set_msjh_font(run):
