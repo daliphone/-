@@ -9,7 +9,7 @@ from io import BytesIO
 import os
 
 # --- 1. 頁面配置 ---
-st.set_page_config(page_title="馬尼通訊 企劃排程系統 v13.0", page_icon="🐎", layout="wide")
+st.set_page_config(page_title="馬尼通訊 企劃排程系統 v13.1", page_icon="🐎", layout="wide")
 
 st.markdown("""
     <style>
@@ -22,30 +22,28 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 初始化範本資料 (使用 Session State 確保可動態修改) ---
+# --- 2. 初始化範本資料 ---
 if 'templates_store' not in st.session_state:
     st.session_state.templates_store = {
         "🐎 馬年慶：百倍奉還": {
             "name": "2026 馬尼通訊「馬年慶：百倍奉還」",
             "purpose": "迎接馬年，透過 $100 低門檻吸引新舊客，增加會員與官網流量。",
-            "core": "對象：全體消費者；範圍：全台門市；產品：「百倍奉還」禮包 ($100)。",
-            "schedule": "01/12-01/18: 宣傳期\n01/19-02/08: 販售期\n02/11: 開獎日",
+            "core": "執行單位: 全公司門市；目標銷售商品為: 100元新年禮包。",
+            "schedule": "提案期: 114/12/01-12/15\n宣傳期: 01/12-01/18\n銷售期: 01/19-02/08\n兌獎期: 02/12-02/28",
             "prizes": "Sony PS5 | 1 名 | 吸睛大獎\n現金 $6,666 | 1 名 | 百倍奉還獎",
-            "sop": "1.限購3包。 2.引導加入LINE。",
-            "marketing": "FB/IG/脆前導；區域廣告投遞。",
-            "risk": "稅務申報；序號防偽；滯銷調度。",
-            "effect": "預估 2,000+ 人次進店。"
+            "sop": "1.確認每人限購數量。 2.主動告知抽獎序號保存。 3.引導加入官方LINE。",
+            "marketing": "FB/IG/脆倒數限動；針對弱勢分店進行區域廣告投遞。",
+            "risk": "稅務申報流程；序號防偽蓋章；滯銷禮包調度機制。",
+            "effect": "預計帶動 2,000+ 進店人次；強化品牌高性價比形象。"
         },
         "📱 範本：新機上市": {"name": "新品發表企劃", "purpose": "", "core": "", "schedule": "", "prizes": "", "sop": "", "marketing": "", "risk": "", "effect": ""},
         "🎁 範本：品牌週年": {"name": "十週年盛典", "purpose": "", "core": "", "schedule": "", "prizes": "", "sop": "", "marketing": "", "risk": "", "effect": ""},
         "🛍️ 範本：門市振興": {"name": "弱勢門市支援方案", "purpose": "", "core": "", "schedule": "", "prizes": "", "sop": "", "marketing": "", "risk": "", "effect": ""}
     }
 
-# --- 3. 側邊欄：範本管理與儲存 ---
+# --- 3. 側邊欄：範本管理 ---
 with st.sidebar:
     st.header("📋 快速範本區")
-    
-    # 選擇要載入或儲存的範本目標
     selected_tpl_key = st.selectbox("選擇操作範本", options=list(st.session_state.templates_store.keys()))
     
     col_tpl1, col_tpl2 = st.columns(2)
@@ -54,7 +52,6 @@ with st.sidebar:
             data = st.session_state.templates_store[selected_tpl_key]
             for key in data: st.session_state[f"p_{key}"] = data[key]
             st.rerun()
-    
     with col_tpl2:
         if st.button("💾 儲存至此範本"):
             st.session_state.templates_store[selected_tpl_key] = {
@@ -77,33 +74,46 @@ with st.sidebar:
         st.rerun()
 
     with st.expander("🛠️ 系統資訊", expanded=False):
-        st.caption("v13.0 | 修復字體 Bug & 範本雙向編輯\n馬尼行銷規劃提案 © 2025 Money MKT")
+        st.caption("v13.1 | 加入欄位引導提示 (Placeholder)\n馬尼行銷規劃提案 © 2025 Money MKT")
 
-# --- 4. 主要編輯區 ---
+# --- 4. 主要編輯區 (加入提示文字) ---
 st.title("📱 馬尼通訊 行銷企劃提案系統")
 
 c_top1, c_top2, c_top3 = st.columns([2, 1, 1])
-with c_top1: p_name = st.text_input("一、 活動名稱", key="p_name")
+with c_top1: p_name = st.text_input("一、 活動名稱", key="p_name", placeholder="例如: 2026 馬年慶：百倍奉還抽獎活動")
 with c_top2: proposer = st.text_input("提案人", key="p_proposer", value="行銷部")
 with c_top3: p_date = st.date_input("提案日期", value=datetime.now(), key="p_date")
 
 st.divider()
 c1, c2 = st.columns(2)
 with c1:
-    st.text_area("活動時機與目的", key="p_purpose", height=100)
-    st.text_area("二、 活動核心內容", key="p_core", height=100)
-    st.text_area("三、 活動時程安排", key="p_schedule", height=120, help="格式 MM/DD: 內容")
-    st.text_area("四、 贈品結構與預算", key="p_prizes", height=120, help="格式 品項 | 數量 | 備註")
+    st.text_area("活動時機與目的", key="p_purpose", height=100, 
+                 placeholder="(節日活動，透過指定促銷或搭贈銷售，增加成交機率與新客。)")
+    
+    st.text_area("二、 活動核心內容", key="p_core", height=100, 
+                 placeholder="執行單位:指定門市或全公司門市，目標銷售商品為:指定商品買一送一、活動期間XX商品8折。")
+    
+    st.text_area("三、 活動時程安排", key="p_schedule", height=120, 
+                 placeholder="建議分為: 提案期、整備期、宣傳期、銷售期、開獎期、兌獎期。")
+    
+    st.text_area("四、 贈品結構與預算", key="p_prizes", height=120, 
+                 placeholder="搭售或搭贈、指定商品的數量或活動名稱，以及相關所需成本估算。")
 
 with c2:
-    st.text_area("五、 門市執行流程 (SOP)", key="p_sop", height=100)
-    st.text_area("六、 行銷流程與策略", key="p_marketing", height=100)
-    st.text_area("七、 風險管理與注意事項", key="p_risk", height=100)
-    st.text_area("八、 預估成效", key="p_effect", height=100)
+    st.text_area("五、 門市執行流程 (SOP)", key="p_sop", height=100, 
+                 placeholder="門市所需要執行的方式或需注意的搭銷方式。")
+    
+    st.text_area("六、 行銷流程與策略", key="p_marketing", height=100, 
+                 placeholder="希望曝光的管道與平台，或是支援提供。")
+    
+    st.text_area("七、 風險管理與注意事項", key="p_risk", height=100, 
+                 placeholder="整個活動的風險評估與一定要注意的相關事項。")
+    
+    st.text_area("八、 預估成效", key="p_effect", height=100, 
+                 placeholder="預計可以營造或是達成期許目的性。")
 
-# --- 5. Word 輸出美化 (修正字體 Bug) ---
+# --- 5. Word 輸出美化 (維持 v13.0 邏輯) ---
 def set_msjh_font(run):
-    """修正版：設定微軟正黑體"""
     run.font.name = 'Microsoft JhengHei'
     r = run._element
     rFonts = r.find(qn('w:rFonts'))
@@ -115,13 +125,10 @@ def set_msjh_font(run):
 
 def generate_pro_word():
     doc = Document()
-    
-    # A. Logo
     if os.path.exists("logo.png"):
         doc.add_picture("logo.png", width=Inches(1.2))
         doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
-    # B. 標題
     h = doc.add_heading('行銷企劃執行提案書', 0)
     h.alignment = WD_ALIGN_PARAGRAPH.CENTER
     
@@ -147,7 +154,6 @@ def generate_pro_word():
         h2 = doc.add_heading(title_text, level=2)
         h2.runs[0].font.color.rgb = RGBColor(11, 28, 63)
         
-        # 時程表格化
         if "時程安排" in title_text and content:
             t = doc.add_table(rows=1, cols=2)
             t.style = 'Light Shading Accent 1'
@@ -159,8 +165,6 @@ def generate_pro_word():
                     row = t.add_row().cells
                     row[0].text = parts[0].strip()
                     row[1].text = parts[1].strip() if len(parts)>1 else ""
-        
-        # 贈品表格化
         elif "贈品結構" in title_text and "|" in content:
             t = doc.add_table(rows=1, cols=3)
             t.style = 'Table Grid'
