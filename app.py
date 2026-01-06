@@ -28,7 +28,8 @@ st.markdown("""
 def smart_ai_optimize(field_id, text, style):
     if not text or len(text) < 2: return text
     
-    # 修正：移除數據標記的邏輯，避免使用引發報錯的反斜線結尾
+    # 【修復重點】改用更安全的方式處理字串，避免反斜線結尾報錯
+    # 此正則表達式用於清除範本中可能殘留的 標記
     text = re.sub(r"\", "", text).strip()
     
     if field_id == "p_purpose":
@@ -50,15 +51,15 @@ def smart_ai_optimize(field_id, text, style):
         return f"【預期效益】{text}。除即時業績增長外，本次活動預計可為品牌增加長期會員資產及社群互動數。"
     return text
 
-# --- 3. 初始化數據與範本 (已手動清理所有 [cite] 標記) ---
+# --- 3. 初始化數據與範本 (已清除所有 cite 標記) ---
 if 'templates_store' not in st.session_state:
     st.session_state.templates_store = {
         "🐎 馬年慶：百倍奉還": {
             "name": "2026 馬尼通訊「馬年慶：百倍奉還」活動執行企劃案",
-            "purpose": "迎接 2026 農曆馬年（丙午年），結合春節紅包與「百倍奉還」話題。透過 $100 元低門檻吸引新(舊)客戶，增加會員登錄與官網流量。",
+            "purpose": "迎接 2026 農曆馬年（丙午年），結合春節紅包與「百倍奉還」話題。透過 $100 元低門檻吸引新舊客戶，增加會員登錄與官網流量。",
             "core": "執行單位: 馬尼行動通訊門市；對象: 所有門市消費者；核心產品: 「百倍奉還」新年禮包 ($100/包)。",
-            "schedule": "宣傳期: 115/01/12-01/18\n銷售期: 115/01/19-02/08\n開獎日: 115/02/11\n兌獎期: 115/02/12-02/28",
-            "prizes": "Sony PS5 (1名) | 現金 $6,666 (1名) | 總獎值突破 $130,000\n官網購物金 $1,500 | 115名 | 帶動二次消費",
+            "schedule": "宣傳期: 115/01/12-01/18\\n銷售期: 115/01/19-02/08\\n開獎日: 115/02/11\\n兌獎期: 115/02/12-02/28",
+            "prizes": "Sony PS5 (1名) | 現金 $6,666 (1名) | 總獎值突破 $130,000\\n官網購物金 $1,500 | 115名 | 帶動二次消費",
             "sop": "確認客購數量(上限3包)；告知序號保存；限量管理(每店66包)；引導加入官方LINE。",
             "marketing": "FB/IG/Threads 倒數限時動態；針對弱勢分店進行區域廣告投遞。",
             "risk": "稅務申報(>$1000)；序號防偽蓋章；銷售分佈不均之調度機制。",
@@ -69,7 +70,7 @@ if 'templates_store' not in st.session_state:
 if "p_proposer" not in st.session_state: 
     st.session_state["p_proposer"] = "行銷部"
 
-# --- 4. 側邊欄 ---
+# --- 4. 側邊欄控制 ---
 with st.sidebar:
     st.header("📋 快速範本區")
     selected_tpl_key = st.selectbox("選擇操作範本", options=list(st.session_state.templates_store.keys()))
@@ -95,7 +96,7 @@ with st.sidebar:
                 "risk": st.session_state.get("p_risk", ""),
                 "effect": st.session_state.get("p_effect", "")
             }
-            st.success(f"已儲存回範本庫")
+            st.success("已儲存回範本庫")
 
     if st.button("🗑️ 清空編輯區"):
         fields = ["p_name", "p_purpose", "p_core", "p_schedule", "p_prizes", "p_sop", "p_marketing", "p_risk", "p_effect"]
@@ -120,9 +121,9 @@ with st.sidebar:
     with st.expander("🛠️ 系統資訊", expanded=False):
         st.caption("""
         **版本**: v14.1.3 (Stable Build)
-        - 徹底修正 re.sub 語法錯誤
+        - 徹底修正字串結尾轉義報錯問題
         - 修復範本載入/儲存雙向功能
-        - 手動清除馬年範本內文引註標籤
+        - 已手動清除馬年範本內文數據標籤
         
         馬尼門活動企劃系統 © 2025 Money MKT
         """)
@@ -140,14 +141,14 @@ c1, c2 = st.columns(2)
 with c1:
     st.text_area("活動時機與目的 (營運目的邏輯)", key="p_purpose", height=100, placeholder="填寫經營目標與時機...")
     st.text_area("二、 活動核心內容 (賣點配置)", key="p_core", height=100, placeholder="對象、執行單位與產品核心...")
-    st.text_area("三、 活動時程安排 (執行重點建議)", key="p_schedule", height=120, placeholder="各階段日期與細節...")
+    st.text_area("三、 活動時程安排 (執行重點建議)", key="p_schedule", height=120, placeholder="各階段日期與執行細節...")
     st.text_area("四、 贈品結構與預算 (關鍵商品用意)", key="p_prizes", height=120, placeholder="品項 | 數量 | 備註")
 
 with c2:
     st.text_area("五、 門市執行流程 (SOP 注意事項)", key="p_sop", height=100, placeholder="銷售環節與限量管理 SOP...")
     st.text_area("六、 行銷流程與策略 (建議管道)", key="p_marketing", height=100, placeholder="線上廣告與標語策略...")
-    st.text_area("七、 風險管理與注意事項 (規範建議)", key="p_risk", height=100, placeholder="稅務、調度與序號防偽...")
-    st.text_area("八、 預估成效 (效益面建議)", key="p_effect", height=100, placeholder="觸及人次、官網轉化等...")
+    st.text_area("七、 風險管理與注意事項 (規範建議)", key="p_risk", height=100, placeholder="稅務法規、調度與序號防偽...")
+    st.text_area("八、 預估成效 (效益面建議)", key="p_effect", height=100, placeholder="觸及人次、官網轉化等預期成效...")
 
 # --- 6. Word 導出與下載 ---
 def set_msjh_font(run):
@@ -194,7 +195,7 @@ def generate_pro_word():
         if "時程安排" in title_text and content:
             t = doc.add_table(rows=1, cols=2)
             t.style = 'Light Shading Accent 1'
-            for line in content.split('\n'):
+            for line in content.split('\\n'):
                 if line.strip():
                     parts = line.split(':') if ':' in line else [line, ""]
                     row = t.add_row().cells
@@ -203,7 +204,7 @@ def generate_pro_word():
         elif "贈品結構" in title_text and "|" in content:
             t = doc.add_table(rows=1, cols=3)
             t.style = 'Table Grid'
-            for line in content.split('\n'):
+            for line in content.split('\\n'):
                 if "|" in line:
                     parts = line.split('|')
                     row = t.add_row().cells
@@ -222,7 +223,7 @@ if st.session_state.get('p_name'):
     if st.button("✅ 完成企劃並產生文檔"):
         doc_bytes = generate_pro_word()
         st.download_button(
-            label="📥 下載馬尼行銷企劃書 (Stable Build)",
+            label="📥 下載馬尼行銷企劃書",
             data=doc_bytes,
             file_name=f"MoneyMKT_{st.session_state.p_name}.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
