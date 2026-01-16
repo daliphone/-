@@ -6,12 +6,16 @@ from io import BytesIO
 import os
 
 # --- 1. 頁面配置與 UI ---
-st.set_page_config(page_title="馬尼通訊 企劃提案系統 v14.3.8", page_icon="🐎", layout="centered")
+st.set_page_config(page_title="馬尼通訊 企劃提案系統 v14.3.9", page_icon="🐎", layout="centered")
 
 st.markdown("""
     <style>
     .main { background-color: #F8FAFC; color: #1E293B; }
     [data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E2E8F0 !important; }
+    
+    /* 側邊欄底部固定效果模擬 */
+    .sidebar-footer { position: fixed; bottom: 20px; width: 260px; }
+
     .section-header { 
         font-size: 20px !important; color: #003f7e !important; font-weight: 700 !important; 
         margin-top: 30px !important; margin-bottom: 10px !important;
@@ -21,18 +25,20 @@ st.markdown("""
         content: ""; display: inline-block; width: 5px; height: 24px; 
         background-color: #ef8200; margin-right: 12px; border-radius: 2px;
     }
+    
+    /* 按鈕樣式微調 */
+    .stButton>button { width: 100% !important; }
     .ai-btn-small>div>button { 
         background-color: #F5F3FF !important; color: #6D28D9 !important; 
         border: 1px solid #DDD6FE !important; font-size: 12px !important;
+        height: 38px !important; /* 統一高度以利對齊 */
     }
-    .version-info { font-size: 12px; color: #64748B; background: #F1F5F9; padding: 10px; border-radius: 8px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 初始化 Session State (含可編輯的引導詞與建議) ---
+# --- 2. 初始化 Session State ---
 FIELDS = ["p_name", "p_proposer", "p_purpose", "p_core", "p_schedule", "p_prizes", "p_sop", "p_marketing", "p_risk", "p_effect"]
 
-# 預設的引導內容與建議內容
 DEFAULT_LOGIC = {
     "p_purpose": "營運目的邏輯：強化解決痛點並增加商品銷售或去化高壓商品。",
     "p_core": "賣點配置建議：建立「低門檻、零風險」誘因。",
@@ -55,7 +61,6 @@ DEFAULT_TIPS = {
     "p_effect": "指標：門市進店率、官網註冊數、轉化率。"
 }
 
-# 初始化 state
 if 'logic_state' not in st.session_state: st.session_state.logic_state = DEFAULT_LOGIC.copy()
 if 'tips_state' not in st.session_state: st.session_state.tips_state = DEFAULT_TIPS.copy()
 if 'templates_store' not in st.session_state: st.session_state.templates_store = {"請選擇範本": {f: "" for f in FIELDS}}
@@ -63,19 +68,7 @@ if 'templates_store' not in st.session_state: st.session_state.templates_store =
 for field in FIELDS:
     if field not in st.session_state: st.session_state[field] = ""
 
-# --- 3. 頁面頂部：版本資訊 ---
-with st.expander("ℹ️ 系統版本資訊 (v14.3.8)"):
-    st.markdown("""
-    <div class="version-info">
-    <b>v14.3.8 (最新)</b>: 增加版本異動記錄；引導詞與實戰建議改為「可編輯模式」。<br>
-    <b>v14.3.7</b>: 調整填寫版面為「直列順序」呈現。<br>
-    <b>v14.3.6</b>: 導入清新視覺感、動態範本儲存與聯動系統。<br>
-    <b>v14.3.5</b>: 模組化結構推進，整合「營運目的」與「去化高壓商品」邏輯。<br>
-    <b>v14.3.4</b>: 建立基礎 AI 優化按鈕與 Word 導出功能。
-    </div>
-    """, unsafe_allow_html=True)
-
-# --- 4. 側邊欄：範本與編輯模式切換 ---
+# --- 3. 側邊欄配置 ---
 with st.sidebar:
     st.header("📋 企劃管理")
     selected_tpl_key = st.selectbox("選擇既有範本", options=list(st.session_state.templates_store.keys()))
@@ -84,7 +77,7 @@ with st.sidebar:
     with col1:
         if st.button("📥 載入範本"):
             data = st.session_state.templates_store[selected_tpl_key]
-            for k, v in data.items(): 
+            for k, v in data.items():
                 if k in FIELDS: st.session_state[k] = v
             st.rerun()
     with col2:
@@ -94,14 +87,20 @@ with st.sidebar:
                 st.session_state.templates_store[new_key] = {f: st.session_state[f] for f in FIELDS}
                 st.success("儲存成功")
                 st.rerun()
-    
-    st.divider()
-    edit_mode = st.toggle("🔓 開啟引導詞/建議編輯模式", value=False)
-    if edit_mode:
-        st.info("編輯模式已開啟：您現在可以直接在下方的「邏輯提示」與「實戰建議」框內修改內容。")
 
-# --- 5. 主要編輯區 (直列版面) ---
-st.title("📱 模組化企劃系統 v14.3.8")
+    st.divider()
+    
+    # 底部版本資訊與隱藏開發模式
+    st.markdown("<br>"*10, unsafe_allow_html=True) # 簡單推至底部
+    with st.expander("ℹ️ 系統版本資訊"):
+        st.caption("v14.3.9: 介面重組與按鈕對齊")
+        edit_mode = st.toggle("🔓 開啟引導詞編輯模式", value=False)
+        st.write("---")
+        st.caption("v14.3.8: 增加編輯模式功能")
+        st.caption("v14.3.7: 直列佈局轉換")
+
+# --- 4. 主要編輯區 ---
+st.title("📱 模組化企劃系統 v14.3.9")
 
 # 基本資訊
 st.markdown('<p class="section-header">基本提案資訊</p>', unsafe_allow_html=True)
@@ -112,7 +111,6 @@ with b3: st.date_input("提案日期", value=datetime.now(), key="p_date")
 
 st.divider()
 
-# 章節配置定義
 sections_info = [
     ("p_purpose", "一、 活動時機與目的"),
     ("p_core", "二、 活動核心內容"),
@@ -124,26 +122,27 @@ sections_info = [
     ("p_effect", "八、 預估成效")
 ]
 
-# 直列渲染
 for fid, title in sections_info:
     st.markdown(f'<p class="section-header">{title}</p>', unsafe_allow_html=True)
     
-    # 1. 邏輯提示詞 (可編輯)
+    # 邏輯提示詞編輯
     if edit_mode:
         st.session_state.logic_state[fid] = st.text_input(f"修改「{title}」提示詞", value=st.session_state.logic_state[fid], key=f"edit_logic_{fid}")
     
-    # 2. 填寫框 (帶入可編輯的提示詞作為 Placeholder)
     st.text_area("", key=fid, height=150, placeholder=st.session_state.logic_state[fid], label_visibility="collapsed")
     
-    # 3. 功能區與實戰建議 (可編輯)
-    c_ai, c_tip = st.columns([1, 4])
+    # 按鈕對其調整：AI優化與查看建議平行
+    c_ai, c_tip = st.columns([1, 2]) # 調整比例使視覺對稱
     with c_ai:
         if fid in ["p_purpose", "p_core", "p_marketing", "p_risk", "p_effect"]:
             st.markdown('<div class="ai-btn-small">', unsafe_allow_html=True)
-            if st.button(f"🪄 AI 優化", key=f"btn_{fid}"):
+            if st.button(f"🪄 AI 優化文字", key=f"btn_{fid}"):
                 st.session_state[fid] = f"【AI 優化中】{st.session_state[fid]}"
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            st.write("") # 佔位維持對齊
+    
     with c_tip:
         with st.expander("💡 查看/編輯實戰建議", expanded=False):
             if edit_mode:
@@ -152,10 +151,10 @@ for fid, title in sections_info:
                 st.caption(st.session_state.tips_state[fid])
     st.write("") 
 
-# --- 6. Word 產出 ---
+# --- 5. Word 產出 ---
 def generate_word():
     doc = Document()
-    doc.add_heading('行銷企劃執行提案書 v14.3.8', 0)
+    doc.add_heading('行銷企劃執行提案書 v14.3.9', 0)
     doc.add_heading(st.session_state.p_name if st.session_state.p_name else "企劃書", level=1)
     for fid, title in sections_info:
         doc.add_heading(title, level=2)
