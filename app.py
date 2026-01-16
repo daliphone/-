@@ -6,7 +6,7 @@ from io import BytesIO
 import os
 
 # --- 1. 頁面配置 ---
-st.set_page_config(page_title="馬尼通訊 戰略發想系統 v14.6.1", page_icon="🐎", layout="centered")
+st.set_page_config(page_title="馬尼通訊 戰略發想系統", page_icon="🐎", layout="centered")
 
 st.markdown("""
     <style>
@@ -140,3 +140,4 @@ if st.session_state.p_name:
     if st.button("✅ 完成企劃並產生文檔"):
         doc_data = generate_word()
         st.download_button(label="📥 下載標準企劃書 (docx)", data=doc_data, file_name=f"MoneyMKT_{st.session_state.p_name}.docx")
+
